@@ -17,10 +17,13 @@ use super::field::FieldElem;
 use num_bigint::BigUint;
 use num_traits::*;
 use sm3::hash::Sm3Hash;
+use super::error::Error;
 
 use yasna;
 
 use byteorder::{BigEndian, WriteBytesExt};
+
+pub const SIGNATURE_SIZE: usize = 64;
 
 pub type Pubkey = Point;
 pub type Seckey = BigUint;
@@ -88,6 +91,27 @@ impl Signature {
     #[inline]
     pub fn get_s(&self) -> &BigUint {
         &self.s
+    }
+}
+
+/// adapted with substrate
+impl Signature {
+
+    pub fn parse(p: &[u8; SIGNATURE_SIZE]) -> Signature {
+        let r = BigUint::from_bytes_be(&p[0..32]);
+        let s = BigUint::from_bytes_be(&p[32..64]);
+
+        Signature { r, s }
+    }
+
+    pub fn parse_slice(p: &[u8]) -> Result<Signature, Error> {
+        if p.len() != SIGNATURE_SIZE {
+            return Err(Error::InvalidInputLength);
+        }
+
+        let mut a = [0; SIGNATURE_SIZE];
+        a.copy_from_slice(p);
+        Ok(Self::parse(&a))
     }
 }
 
