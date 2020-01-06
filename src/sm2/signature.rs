@@ -113,6 +113,13 @@ impl Signature {
         a.copy_from_slice(p);
         Ok(Self::parse(&a))
     }
+
+    pub fn serialize(&self) -> [u8; 64] {
+        let mut ret = [0u8; 64];
+        ret[0..32].copy_from_slice(&self.r.to_bytes_be()[..]);
+        ret[32..64].copy_from_slice(&self.s.to_bytes_be()[..]);
+        ret
+    }
 }
 
 pub struct SigCtx {
