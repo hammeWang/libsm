@@ -13,18 +13,18 @@
 // limitations under the License.
 
 use super::field::*;
-use num_bigint::BigUint;
+use num_bigint::BigUint as NBigUint;
 use num_integer::Integer;
 use num_traits::*;
 
-use rand::os::OsRng;
-use rand::Rng;
+use rand::rngs::OsRng;
+use rand::{Rng, RngCore};
 
 pub struct EccCtx {
     fctx: FieldCtx,
     a: FieldElem,
     b: FieldElem,
-    n: BigUint,
+    n: NBigUint,
     inv2: FieldElem,
 }
 
@@ -100,7 +100,7 @@ impl EccCtx {
                 0xddbc_bd41,
                 0x4d94_0e93,
             ]),
-            n: BigUint::from_str_radix(
+            n: NBigUint::from_str_radix(
                 "FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123",
                 16,
             )
@@ -120,25 +120,25 @@ impl EccCtx {
     }
 
     #[inline]
-    pub fn get_n(&self) -> &BigUint {
+    pub fn get_n(&self) -> &NBigUint {
         &self.n
     }
 
-    pub fn inv_n(&self, x: &BigUint) -> BigUint {
-        if *x == BigUint::zero() {
+    pub fn inv_n(&self, x: &NBigUint) -> NBigUint {
+        if *x == NBigUint::zero() {
             panic!("zero has no inversion.");
         }
 
         let mut ru = x.clone();
         let mut rv = self.get_n().clone();
-        let mut ra = BigUint::one();
-        let mut rc = BigUint::zero();
+        let mut ra = NBigUint::one();
+        let mut rc = NBigUint::zero();
 
         let rn = self.get_n().clone();
 
-        let two = BigUint::from_u32(2).unwrap();
+        let two = NBigUint::from_u32(2).unwrap();
 
-        while ru != BigUint::zero() {
+        while ru != NBigUint::zero() {
             if ru.is_even() {
                 ru /= &two;
                 if ra.is_even() {
@@ -366,7 +366,7 @@ impl EccCtx {
         }
     }
 
-    pub fn mul(&self, m: &BigUint, p: &Point) -> Point {
+    pub fn mul(&self, m: &NBigUint, p: &Point) -> Point {
         let m = m % self.get_n();
 
         let k = FieldElem::from_biguint(&m);
@@ -412,7 +412,7 @@ impl EccCtx {
             + (EccCtx::ith_bit(v[0], i) << 7)
     }
 
-    pub fn g_mul(&self, m: &BigUint) -> Point {
+    pub fn g_mul(&self, m: &NBigUint) -> Point {
         let m = m % self.get_n();
         let k = FieldElem::from_biguint(&m);
         let mut q = self.zero();
@@ -447,16 +447,15 @@ impl EccCtx {
         p1x.eq(&p2x) && p1y.eq(&p2y)
     }
 
-    pub fn random_uint(&self) -> BigUint {
-        let mut rng = OsRng::new().unwrap();
+    pub fn random_uint(&self) -> NBigUint {
         let mut buf: [u8; 32] = [0; 32];
 
         let mut ret;
 
         loop {
-            rng.fill_bytes(&mut buf[..]);
-            ret = BigUint::from_bytes_be(&buf[..]);
-            if ret < self.get_n() - BigUint::one() && ret != BigUint::zero() {
+            let rng = OsRng.fill_bytes(&mut buf[..]);
+            ret = NBigUint::from_bytes_be(&buf[..]);
+            if ret < self.get_n() - NBigUint::one() && ret != NBigUint::zero() {
                 break;
             }
         }
@@ -579,11 +578,11 @@ mod tests {
         let g = curve.generator();
 
         let double_g = curve.double(&g);
-        let twice_g = curve.mul(&BigUint::from_u32(2).unwrap(), &g);
+        let twice_g = curve.mul(&NBigUint::from_u32(2).unwrap(), &g);
 
         assert!(curve.eq(&double_g, &twice_g));
 
-        let n = curve.get_n() - BigUint::one();
+        let n = curve.get_n() - NBigUint::one();
         let new_g = curve.mul(&n, &g);
         let new_g = curve.add(&new_g, &double_g);
         assert!(curve.eq(&g, &new_g));
@@ -594,12 +593,12 @@ mod tests {
         let curve = EccCtx::new();
         let g = curve.generator();
 
-        let twice_g = curve.g_mul(&BigUint::from_u64(4_294_967_296).unwrap());
-        let double_g = curve.mul(&BigUint::from_u64(4_294_967_296).unwrap(), &g);
+        let twice_g = curve.g_mul(&NBigUint::from_u64(4_294_967_296).unwrap());
+        let double_g = curve.mul(&NBigUint::from_u64(4_294_967_296).unwrap(), &g);
 
         assert!(curve.eq(&double_g, &twice_g));
 
-        let n = curve.get_n() - BigUint::one();
+        let n = curve.get_n() - NBigUint::one();
         let new_g = curve.g_mul(&n);
         let nn_g = curve.mul(&n, &g);
         assert!(curve.eq(&nn_g, &new_g));
@@ -616,7 +615,7 @@ mod tests {
             let product = r * r_inv;
             let product = product % curve.get_n();
 
-            assert_eq!(product, BigUint::one());
+            assert_eq!(product, NBigUint::one());
         }
     }
 

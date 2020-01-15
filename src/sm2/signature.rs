@@ -14,32 +14,31 @@
 
 use super::ecc::*;
 use super::field::FieldElem;
-use num_bigint::BigUint;
+use num_bigint::BigUint as NBigUint;
 use num_traits::*;
 use sm3::hash::Sm3Hash;
+#[cfg(feature = "der")]
+use yasna;
 use super::error::Error;
 
-use yasna;
-
 use byteorder::{BigEndian, WriteBytesExt};
-
 pub const SIGNATURE_SIZE: usize = 64;
-
 pub type Pubkey = Point;
-pub type Seckey = BigUint;
+pub type Seckey = NBigUint;
 
 pub struct Signature {
-    r: BigUint,
-    s: BigUint,
+    r: NBigUint,
+    s: NBigUint,
 }
 
 impl Signature {
     pub fn new(r_bytes: &[u8], s_bytes: &[u8]) -> Self {
-        let r = BigUint::from_bytes_be(r_bytes);
-        let s = BigUint::from_bytes_be(s_bytes);
+        let r = NBigUint::from_bytes_be(r_bytes);
+        let s = NBigUint::from_bytes_be(s_bytes);
         Signature { r, s }
     }
 
+    #[cfg(feature = "der")]
     pub fn der_decode(buf: &[u8]) -> Result<Signature, yasna::ASN1Error> {
         let (r, s) = yasna::parse_der(buf, |reader| {
             reader.read_sequence(|reader| {
@@ -59,7 +58,7 @@ impl Signature {
         if buf.len() <= r_len + 4 {
             return Err(());
         }
-        let r = BigUint::from_bytes_be(&buf[2..2 + r_len]);
+        let r = NBigUint::from_bytes_be(&buf[2..2 + r_len]);
 
         let buf = &buf[2 + r_len..];
         if buf[0] != 0x02 {
@@ -69,11 +68,12 @@ impl Signature {
         if buf.len() < s_len + 2 {
             return Err(());
         }
-        let s = BigUint::from_bytes_be(&buf[2..2 + s_len]);
+        let s = NBigUint::from_bytes_be(&buf[2..2 + s_len]);
 
         Ok(Signature { r, s })
     }
 
+    #[cfg(feature = "der")]
     pub fn der_encode(&self) -> Vec<u8> {
         yasna::construct_der(|writer| {
             writer.write_sequence(|writer| {
@@ -84,12 +84,12 @@ impl Signature {
     }
 
     #[inline]
-    pub fn get_r(&self) -> &BigUint {
+    pub fn get_r(&self) -> &NBigUint {
         &self.r
     }
 
     #[inline]
-    pub fn get_s(&self) -> &BigUint {
+    pub fn get_s(&self) -> &NBigUint {
         &self.s
     }
 }
@@ -98,8 +98,8 @@ impl Signature {
 impl Signature {
 
     pub fn parse(p: &[u8; SIGNATURE_SIZE]) -> Signature {
-        let r = BigUint::from_bytes_be(&p[0..32]);
-        let s = BigUint::from_bytes_be(&p[32..64]);
+        let r = NBigUint::from_bytes_be(&p[0..32]);
+        let s = NBigUint::from_bytes_be(&p[32..64]);
 
         Signature { r, s }
     }
@@ -121,7 +121,6 @@ impl Signature {
         ret
     }
 }
-
 pub struct SigCtx {
     curve: EccCtx,
 }
@@ -178,18 +177,18 @@ impl SigCtx {
         hasher.get_hash()
     }
 
-    pub fn sign(&self, msg: &[u8], sk: &BigUint, pk: &Point) -> Signature {
+    pub fn sign(&self, msg: &[u8], sk: &NBigUint, pk: &Point) -> Signature {
         // Get the value "e", which is the hash of message and ID, EC parameters and public key
         let digest = self.hash("1234567812345678", pk, msg);
 
         self.sign_raw(&digest[..], sk)
     }
 
-    pub fn sign_raw(&self, digest: &[u8], sk: &BigUint) -> Signature {
+    pub fn sign_raw(&self, digest: &[u8], sk: &NBigUint) -> Signature {
         let curve = &self.curve;
         // Get the value "e", which is the hash of message and ID, EC parameters and public key
 
-        let e = BigUint::from_bytes_be(digest);
+        let e = NBigUint::from_bytes_be(digest);
 
         // two while loops
         loop {
@@ -202,12 +201,12 @@ impl SigCtx {
 
             // r = e + x_1
             let r = (&e + x_1) % curve.get_n();
-            if r == BigUint::zero() || &r + &k == *curve.get_n() {
+            if r == NBigUint::zero() || &r + &k == *curve.get_n() {
                 continue;
             }
 
             // s = (1 + sk)^-1 * (k - r * sk)
-            let s1 = curve.inv_n(&(sk + BigUint::one()));
+            let s1 = curve.inv_n(&(sk + NBigUint::one()));
 
             let mut s2_1 = &r * sk;
             if s2_1 < k {
@@ -219,7 +218,7 @@ impl SigCtx {
 
             let s = (s1 * s2) % curve.get_n();
 
-            if s != BigUint::zero() {
+            if s != NBigUint::zero() {
                 // Output the signature (r, s)
                 return Signature { r, s };
             }
@@ -238,11 +237,11 @@ impl SigCtx {
         if digest.len() != 32 {
             panic!("the length of digest must be 32-bytes.");
         }
-        let e = BigUint::from_bytes_be(digest);
+        let e = NBigUint::from_bytes_be(digest);
 
         let curve = &self.curve;
         // check r and s
-        if *sig.get_r() == BigUint::zero() || *sig.get_s() == BigUint::zero() {
+        if *sig.get_r() == NBigUint::zero() || *sig.get_s() == NBigUint::zero() {
             return false;
         }
         if *sig.get_r() >= *curve.get_n() || *sig.get_s() >= *curve.get_n() {
@@ -251,7 +250,7 @@ impl SigCtx {
 
         // calculate R
         let t = (sig.get_s() + sig.get_r()) % curve.get_n();
-        if t == BigUint::zero() {
+        if t == NBigUint::zero() {
             return false;
         }
 
@@ -265,9 +264,9 @@ impl SigCtx {
         r_ == *sig.get_r()
     }
 
-    pub fn new_keypair(&self) -> (Point, BigUint) {
+    pub fn new_keypair(&self) -> (Point, NBigUint) {
         let curve = &self.curve;
-        let mut sk: BigUint = curve.random_uint();
+        let mut sk: NBigUint = curve.random_uint();
         let mut pk: Point = curve.g_mul(&sk);
 
         loop {
@@ -281,9 +280,9 @@ impl SigCtx {
         (pk, sk)
     }
 
-    pub fn pk_from_sk(&self, sk: &BigUint) -> Point {
+    pub fn pk_from_sk(&self, sk: &NBigUint) -> Point {
         let curve = &self.curve;
-        if *sk >= *curve.get_n() || *sk == BigUint::zero() {
+        if *sk >= *curve.get_n() || *sk == NBigUint::zero() {
             panic!("invalid seckey");
         }
         curve.mul(&sk, &curve.generator())
@@ -297,11 +296,11 @@ impl SigCtx {
         self.curve.point_to_bytes(p, compress)
     }
 
-    pub fn load_seckey(&self, buf: &[u8]) -> Result<BigUint, ()> {
+    pub fn load_seckey(&self, buf: &[u8]) -> Result<NBigUint, ()> {
         if buf.len() != 32 {
             return Err(());
         }
-        let sk = BigUint::from_bytes_be(buf);
+        let sk = NBigUint::from_bytes_be(buf);
         if sk > *self.curve.get_n() {
             Err(())
         } else {
@@ -309,7 +308,7 @@ impl SigCtx {
         }
     }
 
-    pub fn serialize_seckey(&self, x: &BigUint) -> Vec<u8> {
+    pub fn serialize_seckey(&self, x: &NBigUint) -> Vec<u8> {
         if *x > *self.curve.get_n() {
             panic!("invalid secret key");
         }

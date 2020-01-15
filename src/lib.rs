@@ -12,17 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+#![cfg_attr(not(feature = "std"), no_std)]
+
 pub mod sm2;
 pub mod sm3;
 pub mod sm4;
 
-extern crate byteorder;
-extern crate rand;
-
-extern crate num_bigint;
-extern crate num_integer;
-extern crate num_traits;
-extern crate yasna;
 
 #[macro_use]
 extern crate lazy_static;
+extern crate byteorder;
+
+
+extern crate num_bigint;
+extern crate rand;
+extern crate num_traits;
+extern crate num_integer;
+#[cfg(feature = "der")]
+extern crate yasna;

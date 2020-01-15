@@ -15,7 +15,7 @@
 // Implementation of the prime field(SCA-256) used by SM2
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use num_bigint::BigUint;
+use num_bigint::BigUint as NBigUint;
 use num_traits::Num;
 use std::io::Cursor;
 
@@ -213,7 +213,7 @@ impl FieldCtx {
         self.sub(&self.modulus, x)
     }
 
-    fn exp(&self, x: &FieldElem, n: &BigUint) -> FieldElem {
+    fn exp(&self, x: &FieldElem, n: &NBigUint) -> FieldElem {
         let u = FieldElem::from_biguint(n);
 
         let mut q0 = FieldElem::from_num(1);
@@ -242,7 +242,7 @@ impl FieldCtx {
     pub fn sqrt(&self, g: &FieldElem) -> Result<FieldElem, ()> {
         // p = 4 * u + 3
         // u = u + 1
-        let u = BigUint::from_str_radix(
+        let u = NBigUint::from_str_radix(
             "28948022302589062189105086303505223191562588497981047863605298483322421248000",
             10,
         )
@@ -427,12 +427,12 @@ impl FieldElem {
         elem
     }
 
-    pub fn to_biguint(&self) -> BigUint {
+    pub fn to_biguint(&self) -> NBigUint {
         let v = self.to_bytes();
-        BigUint::from_bytes_be(&v[..])
+        NBigUint::from_bytes_be(&v[..])
     }
 
-    pub fn from_biguint(bi: &BigUint) -> FieldElem {
+    pub fn from_biguint(bi: &NBigUint) -> FieldElem {
         let v = bi.to_bytes_be();
         let mut num_v = [0u8; 32];
         num_v[32 - v.len()..32].copy_from_slice(&v[..]);
