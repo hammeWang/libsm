@@ -324,6 +324,7 @@ impl Default for SigCtx {
 }
 
 #[cfg(test)]
+#[cfg(der)]
 mod tests {
     use super::*;
 

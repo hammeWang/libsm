@@ -13,10 +13,11 @@
 // limitations under the License.
 
 // Implementation of the prime field(SCA-256) used by SM2
-
+#![cfg_attr(not(feature = "std"), no_std)]
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_bigint::BigUint as NBigUint;
 use num_traits::Num;
+#[cfg(feature = "std")]
 use std::io::Cursor;
 
 pub struct FieldCtx {
@@ -461,8 +462,8 @@ impl FieldElem {
 mod tests {
     use super::*;
 
-    use rand::os::OsRng;
-    use rand::Rng;
+    use rand::rngs::OsRng;
+    use rand::{Rng, RngCore};
 
     #[test]
     fn test_add() {
@@ -488,10 +489,9 @@ mod tests {
     }
 
     fn rand_elem() -> FieldElem {
-        let mut rng = OsRng::new().unwrap();
         let mut buf: [u32; 8] = [0; 8];
         for v in buf.iter_mut().take(8) {
-            *v = rng.next_u32();
+            *v = OsRng.next_u32();
         }
 
         let ret = FieldElem::new(buf);

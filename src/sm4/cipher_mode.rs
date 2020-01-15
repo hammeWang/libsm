@@ -197,21 +197,19 @@ impl SM4CipherMode {
 mod tests {
     use super::*;
 
-    use rand::os::OsRng;
-    use rand::Rng;
+    use rand::rngs::OsRng;
+    use rand::{Rng, RngCore};
 
     fn rand_block() -> [u8; 16] {
-        let mut rng = OsRng::new().unwrap();
         let mut block: [u8; 16] = [0; 16];
-        rng.fill_bytes(&mut block[..]);
+        OsRng.fill_bytes(&mut block[..]);
         block
     }
 
     fn rand_data(len: usize) -> Vec<u8> {
-        let mut rng = OsRng::new().unwrap();
         let mut dat: Vec<u8> = Vec::new();
         dat.resize(len, 0);
-        rng.fill_bytes(&mut dat[..]);
+        OsRng.fill_bytes(&mut dat[..]);
         dat
     }
 
