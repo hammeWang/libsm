@@ -15,4 +15,4 @@
 pub mod ecc;
 pub mod field;
 pub mod signature;
-mod error;
+pub mod error;
