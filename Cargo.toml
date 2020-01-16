@@ -28,7 +28,8 @@ std = [
     "num-traits/std",
     "num-integer/std",
     "num-bigint/std",
-    "lazy_static"
+    "lazy_static",
+    "yasna"
 ]
 der = [
     "yasna"

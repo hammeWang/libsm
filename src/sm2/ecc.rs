@@ -539,9 +539,9 @@ impl Point {
         self.z.eq(&FieldElem::zero())
     }
 }
-
+#[cfg(feature = "std")]
 use std::fmt;
-
+#[cfg(feature = "std")]
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let curve = EccCtx::new();

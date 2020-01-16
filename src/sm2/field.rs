@@ -17,7 +17,6 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_bigint::BigUint as NBigUint;
 use num_traits::Num;
-#[cfg(feature = "std")]
 use std::io::Cursor;
 
 pub struct FieldCtx {
@@ -415,6 +414,7 @@ impl FieldElem {
         }
         ret
     }
+
     pub fn from_bytes(x: &[u8]) -> FieldElem {
         if x.len() != 32 {
             panic!("a SCA-256 field element must be 32-byte long");
