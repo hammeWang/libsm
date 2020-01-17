@@ -14,7 +14,9 @@
 
 // Implementation of the prime field(SCA-256) used by SM2
 #![cfg_attr(not(feature = "std"), no_std)]
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+#[cfg(feature = "std")]
+use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::BigEndian;
 use num_bigint::BigUint as NBigUint;
 use num_traits::Num;
 #[cfg(feature = "std")]
