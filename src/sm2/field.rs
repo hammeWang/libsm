@@ -17,6 +17,7 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_bigint::BigUint as NBigUint;
 use num_traits::Num;
+#[cfg(feature = "std")]
 use std::io::Cursor;
 
 pub struct FieldCtx {
@@ -415,6 +416,7 @@ impl FieldElem {
         ret
     }
 
+    #[cfg(feature = "std")]
     pub fn from_bytes(x: &[u8]) -> FieldElem {
         if x.len() != 32 {
             panic!("a SCA-256 field element must be 32-byte long");
@@ -426,6 +428,25 @@ impl FieldElem {
             elem.value[i] = x;
         }
         elem
+    }
+
+    // to support no_std feature
+    #[cfg(not(feature = "std"))]
+    fn from_bytes(x : &[u8]) -> FieldElem {
+        if x.len() != 32 {
+            panic!("[nostd]:a SCA-256 field element must be 32-byte long");
+        }
+        let mut r = [0u32; 8];
+        r[0] = ((x[0] as u32) << 24) | ((x[1] as u32) << 16) | ((x[2] as u32) << 8) | (x[3] as u32);
+        r[1] = ((x[4] as u32) << 24) | ((x[5] as u32) << 16) | ((x[6] as u32) << 8) | (x[7] as u32);
+        r[2] = ((x[8] as u32) << 24) | ((x[9] as u32) << 16) | ((x[10] as u32) << 8) | (x[11] as u32);
+        r[3] = ((x[12] as u32) << 24) | ((x[13] as u32) << 16) | ((x[14] as u32) << 8) | (x[15] as u32);
+        r[4] = ((x[16] as u32) << 24) | ((x[17] as u32) << 16) | ((x[18] as u32) << 8) | (x[19] as u32);
+        r[5] = ((x[20] as u32) << 24) | ((x[21] as u32) << 16) | ((x[22] as u32) << 8) | (x[23] as u32);
+        r[6] = ((x[24] as u32) << 24) | ((x[25] as u32) << 16) | ((x[26] as u32) << 8) | (x[27] as u32);
+        r[7] = ((x[28] as u32) << 24) | ((x[29] as u32) << 16) | ((x[30] as u32) << 8) | (x[31] as u32);
+
+        FieldElem::new(r)
     }
 
     pub fn to_biguint(&self) -> NBigUint {
