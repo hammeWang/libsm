@@ -1,0 +1,14 @@
+{
+    "workbench.colorCustomizations": {
+        "selection.background": "#660d35",
+        "activityBar.dropBackground": "#660d35",
+        "activityBarBadge.background": "#660d35",
+        "button.background": "#af3574",
+        "button.hoverBackground": "#660d35",
+        "tab.activeBackground": "#660d35",
+        "tab.unfocusedActiveBackground": "#ff0000",
+        "sideBar.background": "#353434",
+        "sideBarSectionHeader.background": "#660d35",
+        "sideBar.dropBackground": "#660d35"
+    }
+}

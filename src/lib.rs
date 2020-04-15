@@ -23,11 +23,13 @@ pub mod sm4;
 #[macro_use]
 extern crate lazy_static;
 extern crate byteorder;
-
+#[macro_use]
+extern crate arrayref;
 
 extern crate num_bigint;
 extern crate rand;
 extern crate num_traits;
 extern crate num_integer;
+
 #[cfg(feature = "der")]
 extern crate yasna;

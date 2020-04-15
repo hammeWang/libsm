@@ -18,3 +18,4 @@ pub mod ecc;
 pub mod field;
 pub mod signature;
 pub mod error;
+pub mod utils;
