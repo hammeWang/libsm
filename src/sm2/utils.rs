@@ -52,6 +52,12 @@ pub fn parse_sk(buf: &[u8]) -> Result<NBigUint, ()> {
 	}
 }
 
+// parse a pubkey
+pub fn parse_pk(buf: &[u8]) -> Result<Point, ()> {
+	let sig_ctx = SigCtx::new();
+	sig_ctx.load_pubkey(buf)
+}
+
 pub fn pk_from_sk(sec: &NBigUint) -> Point {
 	let sig_ctx = SigCtx::new();
 	sig_ctx.pk_from_sk(sec)
