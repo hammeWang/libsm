@@ -61,3 +61,8 @@ pub fn sign(msg: &[u8], sk: &NBigUint, pk: &Point) -> Signature {
 	let sig_ctx = SigCtx::new();
 	sig_ctx.sign(msg, sk, pk)
 }
+
+pub fn verity(msg: &[u8], pk: &Point, sig: &Signature) -> bool {
+	let sig_ctx = SigCtx::new();
+	sig_ctx.verify(msg, pk, sig)
+}
