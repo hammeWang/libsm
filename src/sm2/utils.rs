@@ -9,7 +9,7 @@ use sm2::field::FieldElem;
 use arrayref::{array_mut_ref, array_ref};
 use sm2::ecc::{Point, EccCtx};
 use num_bigint::BigUint as NBigUint;
-use sm2::signature::SigCtx;
+use sm2::signature::{SigCtx, Signature};
 
 
 // from [u8; 65] to [u8; 32]
@@ -57,3 +57,7 @@ pub fn pk_from_sk(sec: &NBigUint) -> Point {
 	sig_ctx.pk_from_sk(sec)
 }
 
+pub fn sign(msg: &[u8], sk: &NBigUint, pk: &Point) -> Signature {
+	let sig_ctx = SigCtx::new();
+	sig_ctx.sign(msg, sk, pk)
+}
