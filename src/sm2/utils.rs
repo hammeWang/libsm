@@ -72,3 +72,8 @@ pub fn verify(msg: &[u8], pk: &Point, sig: &Signature) -> bool {
 	let sig_ctx = SigCtx::new();
 	sig_ctx.verify(msg, pk, sig)
 }
+
+pub fn sk_to_bytes(sec: &NBigUint) -> [u8; 32] {
+	let buf = sec.to_bytes_be();
+	*array_ref!(buf, 0, 32)
+}
