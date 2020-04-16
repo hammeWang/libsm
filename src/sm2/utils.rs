@@ -1,7 +1,15 @@
+// TODO: ugly hack. better to reorg the whole structure.
+// TODO: combine SigCtx and EccCtx
+
+// we reuse some function in signature without expose the
+// SigCtx or EccCtx.
+
+
 use sm2::field::FieldElem;
 use arrayref::{array_mut_ref, array_ref};
 use sm2::ecc::{Point, EccCtx};
 use num_bigint::BigUint as NBigUint;
+use sm2::signature::SigCtx;
 
 
 // from [u8; 65] to [u8; 32]
@@ -43,3 +51,9 @@ pub fn parse_sk(buf: &[u8]) -> Result<NBigUint, ()> {
 		Ok(sk)
 	}
 }
+
+pub fn pk_from_sk(sec: &NBigUint) -> Point {
+	let sig_ctx = SigCtx::new();
+	sig_ctx.pk_from_sk(sec)
+}
+
