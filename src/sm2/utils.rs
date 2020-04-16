@@ -1,6 +1,8 @@
 use sm2::field::FieldElem;
 use arrayref::{array_mut_ref, array_ref};
 use sm2::ecc::{Point, EccCtx};
+use num_bigint::BigUint as NBigUint;
+
 
 // from [u8; 65] to [u8; 32]
 pub fn full_pk_to_compress(full: &[u8]) -> Result<[u8; 33], ()> {
@@ -26,4 +28,18 @@ pub fn point_to_compress(p: &Point) -> [u8; 33] {
 	// get the compressed public key
 	let pk_bytes = ecc.point_to_bytes(p, true);
 	*array_ref!(pk_bytes, 0, 33)
+}
+
+// parse a seckey
+pub fn parse_sk(buf: &[u8]) -> Result<NBigUint, ()> {
+	if buf.len() != 32 {
+		return Err(());
+	}
+	let ecc = EccCtx::new();
+	let sk = NBigUint::from_bytes_be(buf);
+	if sk > *ecc.get_n() {
+		Err(())
+	} else {
+		Ok(sk)
+	}
 }
