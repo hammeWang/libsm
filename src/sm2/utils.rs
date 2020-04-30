@@ -4,6 +4,10 @@
 // we reuse some function in signature without expose the
 // SigCtx or EccCtx.
 
+/// Adaption to Substrate
+/// we need to expand the signature from 64 bytes to 97 bytes
+/// which contains a 64-byte origin signature with 33-byte public key
+
 
 use sm2::field::FieldElem;
 use arrayref::{array_mut_ref, array_ref};
@@ -63,9 +67,11 @@ pub fn pk_from_sk(sec: &NBigUint) -> Point {
 	sig_ctx.pk_from_sk(sec)
 }
 
-pub fn sign(msg: &[u8], sk: &NBigUint, pk: &Point) -> Signature {
+pub fn sign(msg: &[u8], sk: &NBigUint, pk: &Point) -> (Signature, [u8; 33]) {
 	let sig_ctx = SigCtx::new();
-	sig_ctx.sign(msg, sk, pk)
+	let sig = sig_ctx.sign(msg, sk, pk);
+	(sig, point_to_compress(pk))
+
 }
 
 pub fn verify(msg: &[u8], pk: &Point, sig: &Signature) -> bool {
